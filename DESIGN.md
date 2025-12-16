@@ -131,7 +131,10 @@ Group: /raffle
 * **/raffle update**  
   * **Action:** Update settings (e.g., max slots) for the active raffle.
 * **/raffle status**  
-  * **Action:** Displays the current status, math breakdown, and open slots.
+  * **Action:** Displays the status of the active raffle.
+  * **Optional:** Provide `raffle_code` to view a historic raffle.
+* **/raffle list**
+  * **Action:** Displays a paginated history of previous raffles (ID, Title, Winner, Price, Date).
 * **/raffle participants**
   * **Action:** Lists all entrants and their slot counts.
 * **/raffle pick_winner**

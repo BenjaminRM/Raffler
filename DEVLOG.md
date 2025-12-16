@@ -119,7 +119,11 @@
     *   Updated `/raffle create` to generate and save this code.
     *   Updated `/raffle status` and `/raffle pick_winner` announcements to display this ID.
 
-### Current State
-*   **Version:** 0.8.0
-*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner + Unique Raffle IDs.
-*   **Database:** Full Schema + Guild Configs + Winner Tracking + Unique Raffle Codes.
+### Raffle History & Lookup
+*   **New Command:** `/raffle list` (Paginated history).
+*   **Updated Command:** `/raffle status [raffle_code]` (Optional lookup for past raffles).
+*   **UI/UX:**
+    *   Formatted history list for mobile readability (Title, ID, Winner, Price, Date).
+    *   Implemented Next/Previous button pagination for history list.
+    *   Status command now accepts an ID to look up closed/archived raffles.
+*   **Current State:** v0.9.0 - Full Lifecycle + History + Lookup.

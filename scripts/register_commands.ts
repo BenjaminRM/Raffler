@@ -147,8 +147,29 @@ const commands = [
       },
       {
         name: 'status',
-        description: 'View the status of the current raffle',
+        description: 'View the status of a raffle',
         type: 1, // SUB_COMMAND
+        options: [
+            {
+                name: 'raffle_code',
+                description: 'View a specific past raffle by its ID code',
+                type: 3, // STRING
+                required: false
+            }
+        ]
+      },
+      {
+        name: 'list',
+        description: 'List previous raffles (History)',
+        type: 1, // SUB_COMMAND
+        options: [
+            {
+                name: 'page',
+                description: 'Page number',
+                type: 4, // INTEGER
+                required: false
+            }
+        ]
       },
       {
         name: 'participants',

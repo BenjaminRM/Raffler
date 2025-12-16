@@ -148,37 +148,154 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
       return messageResponse(`🎉 **Raffle Complete!**\n\nThe winner of **${raffle.item_title}** (ID: \`${raffle.raffle_code || "N/A"}\`) is...\n\n🏆 <@${winningSlot.claimant_id}> (Slot #${winningSlot.slot_number}) 🏆\n\nCongratulations! The raffle is now closed.`);
   }
 
-  if (subcommand?.name === "status") {
-      const { data: raffle } = await supabase.from("raffles").select("*").eq("status", "ACTIVE").eq("guild_id", guild_id).single();
-      if (!raffle) return messageResponse("No active raffle at the moment.");
+  if (subcommand?.name === "list") {
+      const page = getOptionValue(subcommand.options, "page") || 1;
+      const pageSize = 5;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize - 1;
 
-      const { count: claimedCount } = await supabase.from("slots").select("*", { count: 'exact', head: true }).eq("raffle_id", raffle.raffle_id);
-      const openSlots = raffle.total_slots - (claimedCount || 0);
-      const totalRaffleValue = raffle.cost_per_slot * raffle.total_slots;
-      const commissionAmount = totalRaffleValue - raffle.market_price;
-      const startTimeDisplay = "<t:" + Math.floor(new Date(raffle.created_at).getTime() / 1000) + ":f>";
-      let endTimeDisplay = "";
-      if (raffle.close_timer) { endTimeDisplay = "\n⏳ **Ends:** <t:" + Math.floor(new Date(raffle.close_timer).getTime() / 1000) + ":R>"; }
+      // Fetch raffles
+      const { data: raffles, count } = await supabase
+        .from("raffles")
+        .select("*", { count: 'exact' })
+        .eq("guild_id", guild_id)
+        .order('created_at', { ascending: false })
+        .range(start, end);
 
-      const statusMsg = "📊 **Raffle Status**\n" + 
-                        "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" +
-                        "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
-                        "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
-                        "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
-                        "--------------------------------\n" +
-                        "🔢 **Total Slots:** " + raffle.total_slots + "\n" +
-                        "💵 **Price Per Slot:** $" + raffle.cost_per_slot.toFixed(2) + "\n" +
-                        "🟢 **Open Slots:** " + openSlots + "\n\n" +
-                        "🕒 **Started:** " + startTimeDisplay + endTimeDisplay + "\n" +
-                        "🛑 **Max Claims:** " + (raffle.max_slots_per_user ? raffle.max_slots_per_user : "Unlimited") + "\n" +
-                        "💳 **Pay:** " + (raffle.payment_trigger === "IMMEDIATE" ? "Immediately on Claim" : "When Full");
+      if (!raffles || raffles.length === 0) {
+          return messageResponse("No raffles found in history.");
+      }
+
+      let msg = `📜 **Raffle History** (Page ${page})\n\n`;
       
-      const mainImage = raffle.images && raffle.images.length > 0 ? raffle.images[0] : null;
+      for (const r of raffles) {
+          const statusIcon = r.status === 'ACTIVE' ? "🟢" : (r.status === 'CLOSED' ? "🔴" : "🚫");
+          const dateStr = new Date(r.created_at).toLocaleDateString();
+          const winnerText = r.winner_id ? `🏆 <@${r.winner_id}>` : (r.status === 'ACTIVE' ? "*(In Progress)*" : "*(No Winner)*");
+          
+          msg += `**${r.item_title}** \`ID: ${r.raffle_code || "N/A"}\`\n`;
+          msg += `${statusIcon} **Price:** ${r.cost_per_slot}/slot | **Slots:** ${r.total_slots} | 📅 ${dateStr}\n`;
+          msg += `> Winner: ${winnerText}\n\n`;
+      }
+
+      // Pagination Buttons
+      const components = [];
+      const row = { type: 1, components: [] as any[] };
+      
+      if (page > 1) {
+          row.components.push({ type: 2, style: 2, label: "Previous", custom_id: `list_prev:${page}` });
+      }
+      
+      // If there are more items beyond this page
+      if (count && count > (end + 1)) {
+          row.components.push({ type: 2, style: 2, label: "Next", custom_id: `list_next:${page}` });
+      }
+
+      if (row.components.length > 0) components.push(row);
+
       return jsonResponse({
-        type: InteractionResponseType.ChannelMessageWithSource,
-        data: { content: statusMsg, embeds: mainImage ? [{ image: { url: mainImage } }] : [] }
-    });
+          type: InteractionResponseType.ChannelMessageWithSource,
+          data: { content: msg, components: components }
+      });
   }
+
+    if (subcommand?.name === "status") {
+
+        const code = getOptionValue(subcommand.options, "raffle_code");
+
+        
+
+        let query = supabase.from("raffles").select("*").eq("guild_id", guild_id);
+
+        
+
+        if (code) {
+
+            query = query.eq("raffle_code", code); // Lookup specific historic raffle
+
+        } else {
+
+            query = query.eq("status", "ACTIVE"); // Default to current active
+
+        }
+
+  
+
+        const { data: raffle, error } = await query.maybeSingle();
+
+  
+
+        if (!raffle) {
+
+             return messageResponse(code ? `No raffle found with ID code: \`${code}\`` : "No active raffle at the moment.");
+
+        }
+
+  
+
+        const { count: claimedCount } = await supabase.from("slots").select("*", { count: 'exact', head: true }).eq("raffle_id", raffle.raffle_id);
+
+        const openSlots = raffle.total_slots - (claimedCount || 0);
+
+        const totalRaffleValue = raffle.cost_per_slot * raffle.total_slots;
+
+        const commissionAmount = totalRaffleValue - raffle.market_price;
+
+        const startTimeDisplay = "<t:" + Math.floor(new Date(raffle.created_at).getTime() / 1000) + ":f>";
+
+        let endTimeDisplay = "";
+
+        if (raffle.close_timer) { endTimeDisplay = "\n⏳ **Ends:** <t:" + Math.floor(new Date(raffle.close_timer).getTime() / 1000) + ":R>"; }
+
+  
+
+        // Status Badge
+
+        const statusBadge = raffle.status === 'ACTIVE' ? "🟢 **ACTIVE**" : (raffle.status === 'CLOSED' ? "🔴 **CLOSED**" : "🚫 **CANCELLED**");
+
+        const winnerDisplay = raffle.winner_id ? `\n🏆 **Winner:** <@${raffle.winner_id}>` : "";
+
+  
+
+        const statusMsg = `📊 **Raffle Status** ${statusBadge}\n` + 
+
+                          "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" +
+
+                          "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
+
+                          "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
+
+                          "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
+
+                          "--------------------------------\n" +
+
+                          "🔢 **Total Slots:** " + raffle.total_slots + "\n" +
+
+                          "💵 **Price Per Slot:** $" + raffle.cost_per_slot.toFixed(2) + "\n" +
+
+                          "🟢 **Open Slots:** " + openSlots + "\n\n" +
+
+                          "🕒 **Started:** " + startTimeDisplay + endTimeDisplay + "\n" +
+
+                          winnerDisplay + "\n" + 
+
+                          "🛑 **Max Claims:** " + (raffle.max_slots_per_user ? raffle.max_slots_per_user : "Unlimited") + "\n" +
+
+                          "💳 **Pay:** " + (raffle.payment_trigger === "IMMEDIATE" ? "Immediately on Claim" : "When Full");
+
+        
+
+        const mainImage = raffle.images && raffle.images.length > 0 ? raffle.images[0] : null;
+
+        return jsonResponse({
+
+          type: InteractionResponseType.ChannelMessageWithSource,
+
+          data: { content: statusMsg, embeds: mainImage ? [{ image: { url: mainImage } }] : [] }
+
+      });
+
+    }
   return errorResponse("Unknown raffle subcommand.");
 }
 
@@ -260,7 +377,58 @@ export async function handleModalSubmit(interaction: any, supabase: SupabaseClie
 
 export async function handleMessageComponent(interaction: any, supabase: SupabaseClient) {
     const customId = interaction.data.custom_id;
-    const [action, raffleId] = customId.split(":");
+    const [action, value] = customId.split(":");
+
+    if (action === "list_prev" || action === "list_next") {
+        const currentPage = parseInt(value);
+        const newPage = action === "list_next" ? currentPage + 1 : currentPage - 1;
+        const guild_id = interaction.guild_id;
+
+        const pageSize = 5;
+        const start = (newPage - 1) * pageSize;
+        const end = start + pageSize - 1;
+
+        const { data: raffles, count } = await supabase
+            .from("raffles")
+            .select("*", { count: 'exact' })
+            .eq("guild_id", guild_id)
+            .order('created_at', { ascending: false })
+            .range(start, end);
+
+        if (!raffles || raffles.length === 0) {
+            return jsonResponse({ type: 7, data: { content: "No more raffles.", components: [] } });
+        }
+
+        let msg = `📜 **Raffle History** (Page ${newPage})\n\n`;
+        for (const r of raffles) {
+            const statusIcon = r.status === 'ACTIVE' ? "🟢" : (r.status === 'CLOSED' ? "🔴" : "🚫");
+            const dateStr = new Date(r.created_at).toLocaleDateString();
+            const winnerText = r.winner_id ? `🏆 <@${r.winner_id}>` : (r.status === 'ACTIVE' ? "*(In Progress)*" : "*(No Winner)*");
+            
+            msg += `**${r.item_title}** \`ID: ${r.raffle_code || "N/A"}\`\n`;
+            msg += `${statusIcon} **Price:** $${r.cost_per_slot}/slot | **Slots:** ${r.total_slots} | 📅 ${dateStr}\n`;
+            msg += `> Winner: ${winnerText}\n\n`;
+        }
+
+        const components = [];
+        const row = { type: 1, components: [] as any[] };
+        
+        if (newPage > 1) {
+            row.components.push({ type: 2, style: 2, label: "Previous", custom_id: `list_prev:${newPage}` });
+        }
+        if (count && count > (end + 1)) {
+            row.components.push({ type: 2, style: 2, label: "Next", custom_id: `list_next:${newPage}` });
+        }
+        if (row.components.length > 0) components.push(row);
+
+        // Update the message (Type 7)
+        return jsonResponse({
+            type: 7,
+            data: { content: msg, components: components }
+        });
+    }
+
+    const raffleId = value; // For raffle_cancel/confirm, value is ID
 
     if (action === "raffle_cancel") {
         await supabase.from("raffles").delete().eq("raffle_id", raffleId);
