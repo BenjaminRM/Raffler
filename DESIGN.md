@@ -14,12 +14,12 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 ### **2.1 Admin (Server Owner/Admin)**
 
 * **Capabilities:**  
-  * Assign the Raffle Host role to trusted users.  
+  * Configure the "Raffle Host" role using `/admin set_host_role`.
   * Force close raffles (emergency).
 
 ### **2.2 Raffle Host**
 
-* **Prerequisite:** Must have a specific Discord Role (e.g., @RaffleHost).  
+* **Prerequisite:** Must have a specific Discord Role configured by the Admin.
 * **Capabilities:**  
   * Run setup commands to configure payment methods and metadata.  
   * Create, Edit, and Close raffles.  
@@ -42,9 +42,16 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 * user\_id (PK): Discord Snowflake ID.  
 * username: Discord username.  
 * display\_name: Server nickname/display name.  
-* created\_at: Timestamp.
+* created_at: Timestamp.
 
-### **3.2 RaffleHosts**
+### **3.2 GuildConfigs**
+
+*Configuration per Discord Server.*
+
+* guild_id (PK): String.
+* raffle_host_role_id: String (Discord Role ID).
+
+### **3.3 RaffleHosts**
 
 *Extends Users. Stores configuration for users allowed to host.*
 
@@ -55,7 +62,7 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 * proxy\_claim\_enabled: Boolean.  
 * default\_payment\_trigger: Enum (IMMEDIATE, ON\_FILL).
 
-### **3.3 HostPaymentMethods**
+### **3.4 HostPaymentMethods**
 
 *One-to-many relationship with RaffleHosts.*
 
@@ -63,11 +70,11 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 * host\_id (FK \-\> RaffleHosts).  
 * platform: Enum/String (Venmo, CashApp, PayPal, Zelle).  
 * handle: String.  
-* qr\_code\_url: String.
+* qr_code_url: String.
 
-### **3.4 Raffles**
+### **3.5 Raffles**
 
-* raffle\_id (PK).  
+* raffle_id (PK).
 * guild\_id: String (Discord Server ID).
 * host\_id (FK \-\> RaffleHosts).  
 * status: Enum (PENDING, ACTIVE, CLOSED, CANCELLED).  
@@ -79,13 +86,13 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 * cost\_per\_slot: Decimal (Calculated: (Price + Commission) / Slots).  
 * max\_slots\_per\_user: Integer.  
 * payment\_trigger: Enum (IMMEDIATE, ON\_FILL).  
-* created\_at: Timestamp.  
-* close\_timer: Timestamp.
+* created_at: Timestamp.
+* close_timer: Timestamp.
 
-### **3.5 Slots**
+### **3.6 Slots**
 
-* id (PK).  
-* raffle\_id (FK \-\> Raffles).  
+* id (PK).
+* raffle_id (FK -> Raffles).  
 * slot\_number: Integer.  
 * claimant\_id: (FK \-\> Users.user\_id).  
 * claimed\_at: Timestamp.  

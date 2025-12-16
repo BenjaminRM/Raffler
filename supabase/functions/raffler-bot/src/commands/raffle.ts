@@ -16,12 +16,21 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
   await ensureUser(supabase, user);
 
   if (subcommand?.name === "create") {
-    const { count, error: countError } = await supabase.from("raffles").select("*", { count: 'exact', head: true }).eq("status", "ACTIVE").eq("guild_id", guild_id);
-    if (countError) return errorResponse("Database error checking active raffles.");
-    if (count && count > 0) return errorResponse("A raffle is already active in this server. Please wait for it to close.");
-
-    const { data: hostData } = await supabase.from("raffle_hosts").select("*").eq("host_id", user.id).single();
-    if (!hostData) return errorResponse("You must be a registered host to create a raffle. Run `/host setup` first.");
+        const { count, error: countError } = await supabase.from("raffles").select("*", { count: 'exact', head: true }).eq("status", "ACTIVE").eq("guild_id", guild_id);
+        if (countError) return errorResponse("Database error checking active raffles.");
+        if (count && count > 0) return errorResponse("A raffle is already active in this server. Please wait for it to close.");
+    
+        // Check for required Host Role
+        const { data: config } = await supabase.from("guild_configs").select("raffle_host_role_id").eq("guild_id", guild_id).single();
+        if (config?.raffle_host_role_id) {
+            const memberRoles = interaction.member?.roles || [];
+            if (!memberRoles.includes(config.raffle_host_role_id)) {
+                return errorResponse(`🚫 Permission Denied.\nYou need the <@&${config.raffle_host_role_id}> role to create raffles in this server.`);
+            }
+        }
+    
+        const { data: hostData } = await supabase.from("raffle_hosts").select("*" ).eq("host_id", user.id).single();
+        if (!hostData) return errorResponse("You must be a registered host to create a raffle. Run `/host setup` first.");
 
     const title = getOptionValue(subcommand.options, "title");
     const img1 = getOptionValue(subcommand.options, "image");

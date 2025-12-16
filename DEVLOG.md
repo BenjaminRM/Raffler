@@ -82,8 +82,25 @@
     *   Removed `close_timer` calculation and enforcement.
     *   Raffles now run indefinitely until manually closed by the host.
 
+## 2025-12-16: Refactoring & Role-Based Access Control
+
+### Refactoring
+*   **Modular Codebase:** Split the single `index.ts` file into a modular structure:
+    *   `src/types.ts`, `src/utils.ts`, `src/discord.ts`, `src/db.ts` for shared logic.
+    *   `src/commands/` for specific command handlers (`host.ts`, `raffle.ts`, `claim.ts`).
+    *   `index.ts` now serves as a clean entry point router.
+
+### Role-Based Access Control (RBAC)
+*   **Guild Configuration:** Created `guild_configs` table to store guild-specific settings (currently: `raffle_host_role_id`).
+*   **Admin Command:** Implemented `/admin set_host_role [role]` to allow server administrators to define which Discord role is required to create raffles.
+*   **Permission Enforcement:** Updated `/raffle create` to:
+    1.  Check if a `raffle_host_role_id` is configured for the guild.
+    2.  If configured, verify the user has that specific role in their `interaction.member.roles`.
+    3.  Deny access with a descriptive message if the role is missing.
+*   **Security:** Registered `/admin` command with `default_member_permissions` set to Administrator (8) to prevent unauthorized configuration.
+*   **Deployment:** Successfully pushed migration `20251216000000_guild_configs.sql` and redeployed the bot.
+
 ### Current State
-*   **Version:** 0.5.1
-*   **Functionality:** Full Feature Set + Host Info + Multi-Image + Multi-Tenancy + Transparent Math + Modal UI + Auto-Assign Claims + Payment DMs + Indefinite Duration.
-*   **Database:** Full Schema Deployed (with latest migrations).
-*   **Environment:** Production Ready (Supabase Edge Function).
+*   **Version:** 0.6.0
+*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration.
+*   **Database:** Full Schema + Guild Configs.

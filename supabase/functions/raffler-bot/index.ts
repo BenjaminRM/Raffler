@@ -10,6 +10,7 @@ import { hexToUint8Array } from "./src/utils.ts";
 import { handleHostCommand } from "./src/commands/host.ts";
 import { handleRaffleCommand, handleModalSubmit, handleMessageComponent } from "./src/commands/raffle.ts";
 import { handleClaimCommand } from "./src/commands/claim.ts";
+import { handleAdminCommand } from "./src/commands/admin.ts";
 
 Deno.serve(async (req) => {
   const signature = req.headers.get("x-signature-ed25519");
@@ -42,6 +43,7 @@ Deno.serve(async (req) => {
         if (name === "host") return await handleHostCommand(interaction, supabase);
         if (name === "raffle") return await handleRaffleCommand(interaction, supabase);
         if (name === "claim") return await handleClaimCommand(interaction, supabase);
+        if (name === "admin") return await handleAdminCommand(interaction, supabase);
     }
 
     if (interaction.type === 5) { // InteractionType.ModalSubmit = 5

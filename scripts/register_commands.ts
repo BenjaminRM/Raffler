@@ -190,6 +190,28 @@ const commands = [
         required: false
       }
     ]
+  },
+  
+  // /admin set_host_role
+  {
+    name: 'admin',
+    description: 'Admin configuration for Raffler',
+    default_member_permissions: '8', // ADMINISTRATOR
+    options: [
+      {
+        name: 'set_host_role',
+        description: 'Set the role required to create raffles',
+        type: 1, // SUB_COMMAND
+        options: [
+          {
+            name: 'role',
+            description: 'The role to assign as Host Role',
+            type: 8, // ROLE
+            required: true
+          }
+        ]
+      }
+    ]
   }
 ];
 
