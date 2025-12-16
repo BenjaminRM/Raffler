@@ -126,4 +126,12 @@
     *   Formatted history list for mobile readability (Title, ID, Winner, Price, Date).
     *   Implemented Next/Previous button pagination for history list.
     *   Status command now accepts an ID to look up closed/archived raffles.
-*   **Current State:** v0.9.0 - Full Lifecycle + History + Lookup.
+
+### Participants UX Update
+*   **Privacy/Clutter Control:** Updated `/raffle participants` to send the list via Direct Message (DM) to the requester instead of posting publicly in the channel.
+*   **Feedback:** Provides an ephemeral "Sent to DMs" confirmation in the channel.
+
+### Current State
+*   **Version:** 0.9.1
+*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner + Unique Raffle IDs + History + DM Participants.
+*   **Database:** Full Schema + Guild Configs + Winner Tracking + Unique Raffle Codes.

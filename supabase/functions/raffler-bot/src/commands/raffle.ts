@@ -1,6 +1,6 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { InteractionResponseType } from "https://deno.land/x/discord_api_types/v10.ts";
-import { getSubcommand, getOptionValue, errorResponse, messageResponse, jsonResponse, getAttachmentUrl } from "../discord.ts";
+import { getSubcommand, getOptionValue, errorResponse, messageResponse, jsonResponse, getAttachmentUrl, sendDM } from "../discord.ts";
 import { ensureUser } from "../db.ts";
 import { parseCommission, bankersRound, generateRaffleCode } from "../utils.ts";
 
@@ -110,7 +110,10 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
           msg += `<@${uid}>: **${nums.length}** slots (${nums.sort((a,b)=>a-b).join(", ")})\n`;
       });
 
-      return messageResponse(msg);
+      // Send via DM
+      await sendDM(user.id, msg);
+
+      return messageResponse("📬 The participants list has been sent to your DMs!", true);
   }
 
   if (subcommand?.name === "pick_winner") {
