@@ -240,10 +240,6 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
 
         const openSlots = raffle.total_slots - (claimedCount || 0);
 
-        const totalRaffleValue = raffle.cost_per_slot * raffle.total_slots;
-
-        const commissionAmount = totalRaffleValue - raffle.market_price;
-
         const startTimeDisplay = "<t:" + Math.floor(new Date(raffle.created_at).getTime() / 1000) + ":f>";
 
         let endTimeDisplay = "";
@@ -265,10 +261,6 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
                           "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" +
 
                           "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
-
-                          "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
-
-                          "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
 
                           "--------------------------------\n" +
 
@@ -335,7 +327,10 @@ export async function handleModalSubmit(interaction: any, supabase: SupabaseClie
     const { data: hostData } = await supabase.from("raffle_hosts").select("commission_rate").eq("host_id", raffle.host_id).single();
     const commissionRateStr = hostData?.commission_rate || "0%";
     const commissionAmount = parseCommission(commissionRateStr, market_price);
-    const totalRaffleValue = market_price + commissionAmount;
+    
+    // Commission is absorbed, so Total Value = Market Price
+    const totalRaffleValue = market_price; 
+    const netToHost = market_price - commissionAmount;
     
     const cost_per_slot = bankersRound(totalRaffleValue / total_slots);
 
@@ -352,11 +347,11 @@ export async function handleModalSubmit(interaction: any, supabase: SupabaseClie
                        "**ID:** `" + (raffle.raffle_code || "PENDING") + "`\n" +
                        "**Slots:** " + total_slots + "\n" +
                        "**Market Price:** $" + market_price.toFixed(2) + "\n" +
-                       "**Commission:** $" + commissionAmount.toFixed(2) + "\n" +
-                       "**Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
                        "--------------------------------\n" +
                        "💵 **Calculated Slot Price:** $" + cost_per_slot.toFixed(2) + " (Rounded)\n" +
                        "--------------------------------\n" +
+                       "**Host Fees:** -$" + commissionAmount.toFixed(2) + " (Deducted from total)\n" +
+                       "**Net to Host:** $" + netToHost.toFixed(2) + "\n" +
                        "**Max Claims:** " + max_slots + "\n" +
                        "Select an option below to finalize or cancel.";
 
@@ -447,8 +442,6 @@ export async function handleMessageComponent(interaction: any, supabase: Supabas
             created_at: new Date().toISOString()
         }).eq("raffle_id", raffleId);
 
-        const totalRaffleValue = raffle.cost_per_slot * raffle.total_slots;
-        const commissionAmount = totalRaffleValue - raffle.market_price;
         const startTimeDisplay = "<t:" + Math.floor(Date.now() / 1000) + ":f>";
         let endTimeDisplay = "";
         if (raffle.close_timer) { endTimeDisplay = "\n⏳ **Ends:** <t:" + Math.floor(new Date(raffle.close_timer).getTime() / 1000) + ":R>"; }
@@ -456,8 +449,6 @@ export async function handleMessageComponent(interaction: any, supabase: Supabas
         const msgContent = "🎉 **New Raffle Started!**\n" + 
                        "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" + 
                        "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
-                       "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
-                       "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
                        "--------------------------------\n" +
                        "🔢 **Slots:** " + raffle.total_slots + "\n" +
                        "💵 **Price Per Slot:** $" + raffle.cost_per_slot.toFixed(2) + "\n\n" +

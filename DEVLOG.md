@@ -135,4 +135,9 @@
 *   **Fill Trigger:** Updated `claim.ts` to detect when claims = total slots.
 *   **Public Alert:** Automatically posts a "RAFFLE FILLED" message to the channel (without pings) closing the raffle.
 *   **Host Alert:** DMs the host with "Your Raffle is Full!", instructions on next steps (Verify Payments -> Pick Winner), and includes the full participants list.
-*   **Current State:** v0.9.5 - Full Lifecycle + History + Lookup + Automated Fill Logic.
+
+### Pricing Logic Update (Commission Absorption)
+*   **Pricing:** Removed commission from the total raffle cost passed to users.
+*   **Logic:** `Total Value` now equals `Market Price`. Commission is calculated and displayed to the host as a *deduction* from their net proceeds in the private confirmation modal.
+*   **Display:** Removed "Fees/Commission" and "Total Value" from public status displays to avoid confusion, showing only "Market Price" and "Slot Price" (which is now `Market / Slots`).
+*   **Current State:** v0.9.6 - Commission Absorbed.

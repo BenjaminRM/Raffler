@@ -159,8 +159,8 @@ Raffles are scoped by `guild_id`. Only one `ACTIVE` raffle is allowed per Guild.
 ### **5.2 Pricing & Commission**
 
 * **Commission:** Parsed from Host Profile (e.g., "5%").
-* **Total Value:** Market Price + Commission.
-* **Slot Price:** Total Value / Total Slots (Rounded to nearest whole number via Banker's Rounding).
+* **Total Value:** Equal to Market Price (Commission is absorbed by the Host).
+* **Slot Price:** Market Price / Total Slots (Rounded to nearest whole number via Banker's Rounding).
 
 ### **5.3 Claims**
 
