@@ -1,5 +1,5 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getOptionValue, errorResponse, messageResponse, sendDM } from "../discord.ts";
+import { getOptionValue, errorResponse, messageResponse, sendDM, sendMessage } from "../discord.ts";
 import { ensureUser } from "../db.ts";
 
 export async function handleClaimCommand(interaction: any, supabase: SupabaseClient) {
@@ -87,6 +87,48 @@ Reference your Discord Name or Slot Numbers in the payment note!`;
 
       // Send DM
       await sendDM(claimantId, payMsg);
+  }
+
+  // --- Check if Raffle is Full ---
+  const { count: finalCount } = await supabase.from("slots").select("*", { count: 'exact', head: true }).eq("raffle_id", raffle.raffle_id);
+  
+  if (finalCount && finalCount >= raffle.total_slots) {
+      // 1. Close the Raffle
+      await supabase.from("raffles").update({ status: "CLOSED" }).eq("raffle_id", raffle.raffle_id);
+
+      // 2. Notify Channel
+      const fillMsg = `🚨 **RAFFLE FILLED!** 🚨\n\n` +
+                      `**${raffle.item_title}** is now full and closed!\n` +
+                      `Please wait for the host <@${raffle.host_id}> to verify payments and draw a winner.\n` + 
+                      `Good luck everyone! 🍀`;
+      await sendMessage(interaction.channel_id, fillMsg);
+
+      // 3. Notify Host (DM)
+      const { data: allSlots } = await supabase.from("slots").select("claimant_id, slot_number").eq("raffle_id", raffle.raffle_id);
+      
+      const userMap = new Map<string, number[]>();
+      if (allSlots) {
+        for (const slot of allSlots) {
+            if (!userMap.has(slot.claimant_id)) userMap.set(slot.claimant_id, []);
+            userMap.get(slot.claimant_id)?.push(slot.slot_number);
+        }
+      }
+
+      let listMsg = `📋 **Raffle Participants List**\n\n`;
+      userMap.forEach((nums, uid) => {
+          listMsg += `<@${uid}>: ${nums.sort((a,b)=>a-b).join(", ")}\n`;
+      });
+
+      const hostMsg = `🏁 **Your Raffle is Full!**\n\n` +
+                      `**${raffle.item_title}** (ID: \`${raffle.raffle_code || "N/A"}\`)\n` +
+                      `All ${raffle.total_slots} slots have been claimed.\n\n` + 
+                      `**Next Steps:**\n` +
+                      `1. Verify that you have received payment for all slots.\n` +
+                      `2. If any payments are missing, DM the users directly.\n` +
+                      `3. Once confirmed, use \`/raffle pick_winner\` in the server to draw the winner!\n\n` + 
+                      listMsg;
+      
+      await sendDM(raffle.host_id, hostMsg);
   }
 
   const msg = onBehalfOf 

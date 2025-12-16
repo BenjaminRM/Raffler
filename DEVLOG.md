@@ -131,7 +131,8 @@
 *   **Privacy/Clutter Control:** Updated `/raffle participants` to send the list via Direct Message (DM) to the requester instead of posting publicly in the channel.
 *   **Feedback:** Provides an ephemeral "Sent to DMs" confirmation in the channel.
 
-### Current State
-*   **Version:** 0.9.1
-*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner + Unique Raffle IDs + History + DM Participants.
-*   **Database:** Full Schema + Guild Configs + Winner Tracking + Unique Raffle Codes.
+### Raffle Fill Notifications
+*   **Fill Trigger:** Updated `claim.ts` to detect when claims = total slots.
+*   **Public Alert:** Automatically posts a "RAFFLE FILLED" message to the channel (without pings) closing the raffle.
+*   **Host Alert:** DMs the host with "Your Raffle is Full!", instructions on next steps (Verify Payments -> Pick Winner), and includes the full participants list.
+*   **Current State:** v0.9.5 - Full Lifecycle + History + Lookup + Automated Fill Logic.

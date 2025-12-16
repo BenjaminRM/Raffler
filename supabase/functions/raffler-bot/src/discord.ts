@@ -66,3 +66,20 @@ export async function sendDM(userId: string, content: string) {
         body: JSON.stringify({ content })
     });
 }
+
+export async function sendMessage(channelId: string, content: string) {
+    const BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN") || Deno.env.get("DISCORD_TOKEN");
+    if (!BOT_TOKEN) return;
+
+    await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bot ${BOT_TOKEN}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+            content,
+            allowed_mentions: { parse: [] } // Disable pings
+        })
+    });
+}
