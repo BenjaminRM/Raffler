@@ -77,9 +77,13 @@
 *   **Bug Fix: "No Active Raffle":**
     *   Identified that `select("*", { count: 'exact', head: true })` was being used in `close` and `claim` commands, causing the query to return no data body, leading to false negatives.
     *   **Fix:** Removed `{ head: true }` from these queries to correctly retrieve raffle data.
+*   **Refinement: Infinite Duration:**
+    *   Removed `duration_hours` input from the creation modal.
+    *   Removed `close_timer` calculation and enforcement.
+    *   Raffles now run indefinitely until manually closed by the host.
 
 ### Current State
-*   **Version:** 0.5.0
-*   **Functionality:** Full Feature Set + Host Info + Multi-Image + Multi-Tenancy + Transparent Math + Duration/Limits + Modal UI + Auto-Assign Claims + Payment DMs.
+*   **Version:** 0.5.1
+*   **Functionality:** Full Feature Set + Host Info + Multi-Image + Multi-Tenancy + Transparent Math + Modal UI + Auto-Assign Claims + Payment DMs + Indefinite Duration.
 *   **Database:** Full Schema Deployed (with latest migrations).
 *   **Environment:** Production Ready (Supabase Edge Function).

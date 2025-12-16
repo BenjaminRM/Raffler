@@ -113,7 +113,7 @@ Group: /raffle
   * **Input:** Title + Image (Required).
   * **Flow:** 
     1. Command creates a "PENDING" raffle.
-    2. Bot returns a Modal requesting: Description, Market Price, Total Slots, Max Claims, Duration.
+    2. Bot returns a Modal requesting: Description, Market Price, Total Slots, Max Claims.
     3. Host submits Modal.
     4. Bot calculates costs (Banker's Rounding) and shows an ephemeral Confirmation Message.
     5. Host clicks "Confirm" -> Raffle becomes "ACTIVE" and public embed is posted.
@@ -131,7 +131,7 @@ Group: /raffle
 * **/claim**  
   * **Inputs:** quantity (Integer).  
   * **Logic:**  
-    1. Check raffle status & expiry.
+    1. Check raffle status.
     2. Check max slots per user.
     3. Auto-assign the next available slot numbers.
     4. **Notify:** If payment trigger is IMMEDIATE, DM the user with the total due and payment handles.

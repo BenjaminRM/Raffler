@@ -247,8 +247,7 @@ async function handleRaffleCommand(interaction: any, supabase: SupabaseClient) {
                 { type: 1, components: [{ type: 4, custom_id: "item_description", label: "Description (Optional)", style: 2, required: false, max_length: 500 }] },
                 { type: 1, components: [{ type: 4, custom_id: "market_price", label: "Total Market Price ($)", style: 1, required: true, placeholder: "e.g. 50.00" }] },
                 { type: 1, components: [{ type: 4, custom_id: "total_slots", label: "Total Slots", style: 1, required: true, placeholder: "e.g. 10" }] },
-                { type: 1, components: [{ type: 4, custom_id: "max_slots_per_user", label: "Max Slots Per User", style: 1, required: true, placeholder: "1", value: "1" }] },
-                { type: 1, components: [{ type: 4, custom_id: "duration_hours", label: "Duration (Hours)", style: 1, required: true, placeholder: "48", value: "48" }] }
+                { type: 1, components: [{ type: 4, custom_id: "max_slots_per_user", label: "Max Slots Per User", style: 1, required: true, placeholder: "1", value: "1" }] }
             ]
         }
     });
@@ -355,17 +354,14 @@ async function handleModalSubmit(interaction: any, supabase: SupabaseClient) {
     const priceStr = getValue("market_price");
     const desc = getValue("item_description");
     const maxSlotsStr = getValue("max_slots_per_user");
-    const durationStr = getValue("duration_hours");
 
     const total_slots = parseInt(slotsStr);
     const market_price = parseFloat(priceStr);
     const max_slots = parseInt(maxSlotsStr);
-    const duration = parseInt(durationStr);
 
     if (isNaN(total_slots) || total_slots < 1) return errorResponse("Total slots must be a valid number greater than 0.");
     if (isNaN(market_price) || market_price < 0) return errorResponse("Market price must be a valid positive number.");
     if (isNaN(max_slots) || max_slots < 1) return errorResponse("Max slots per user must be a valid number.");
-    if (isNaN(duration) || duration < 1) return errorResponse("Duration must be a valid number.");
 
     const { data: raffle } = await supabase.from("raffles").select("*" ).eq("raffle_id", raffleId).single();
     if (!raffle || raffle.status !== 'PENDING') return errorResponse("Raffle not found or expired.");
@@ -377,16 +373,12 @@ async function handleModalSubmit(interaction: any, supabase: SupabaseClient) {
     
     const cost_per_slot = bankersRound(totalRaffleValue / total_slots);
 
-    const ms = duration * 60 * 60 * 1000;
-    const close_timer = new Date(Date.now() + ms).toISOString();
-
     await supabase.from("raffles").update({
         item_description: desc,
         total_slots: total_slots,
         market_price: market_price,
         cost_per_slot: cost_per_slot,
         max_slots_per_user: max_slots,
-        close_timer: close_timer,
     }).eq("raffle_id", raffleId);
 
     const msgContent = "⚠️ **Please Confirm Raffle Details**\n\n" + 
@@ -399,7 +391,6 @@ async function handleModalSubmit(interaction: any, supabase: SupabaseClient) {
                        "💵 **Calculated Slot Price:** $" + cost_per_slot.toFixed(2) + " (Rounded)\n" +
                        "--------------------------------\n" +
                        "**Max Claims:** " + max_slots + "\n" +
-                       "**Duration:** " + duration + " Hours\n\n" +
                        "Select an option below to finalize or cancel.";
 
     return jsonResponse({
