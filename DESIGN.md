@@ -75,7 +75,9 @@ This project involves building a Discord bot to manage the inputs, outputs, and 
 ### **3.5 Raffles**
 
 * raffle_id (PK).
-* guild\_id: String (Discord Server ID).
+* guild_id: String (Discord Server ID).
+* raffle_code: String (Unique 8-char ID).
+* winner_id: String (Discord User ID).
 * host\_id (FK \-\> RaffleHosts).  
 * status: Enum (PENDING, ACTIVE, CLOSED, CANCELLED).  
 * item\_title: String.  

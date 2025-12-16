@@ -2,7 +2,7 @@ import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { InteractionResponseType } from "https://deno.land/x/discord_api_types/v10.ts";
 import { getSubcommand, getOptionValue, errorResponse, messageResponse, jsonResponse, getAttachmentUrl } from "../discord.ts";
 import { ensureUser } from "../db.ts";
-import { parseCommission, bankersRound } from "../utils.ts";
+import { parseCommission, bankersRound, generateRaffleCode } from "../utils.ts";
 
 export async function handleRaffleCommand(interaction: any, supabase: SupabaseClient) {
   const { data } = interaction;
@@ -43,7 +43,8 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
         status: "PENDING", 
         item_title: title,
         images: images,
-        payment_trigger: "IMMEDIATE" 
+        payment_trigger: "IMMEDIATE",
+        raffle_code: generateRaffleCode()
     }).select().single();
 
     if (error) return errorResponse(`Failed to initialize raffle: ${error.message}`);
@@ -144,7 +145,7 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
 
       if (error) return errorResponse(`Failed to record winner: ${error.message}`);
 
-      return messageResponse(`🎉 **Raffle Complete!**\n\nThe winner of **${raffle.item_title}** is...\n\n🏆 <@${winningSlot.claimant_id}> (Slot #${winningSlot.slot_number}) 🏆\n\nCongratulations! The raffle is now closed.`);
+      return messageResponse(`🎉 **Raffle Complete!**\n\nThe winner of **${raffle.item_title}** (ID: \`${raffle.raffle_code || "N/A"}\`) is...\n\n🏆 <@${winningSlot.claimant_id}> (Slot #${winningSlot.slot_number}) 🏆\n\nCongratulations! The raffle is now closed.`);
   }
 
   if (subcommand?.name === "status") {
@@ -160,7 +161,7 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
       if (raffle.close_timer) { endTimeDisplay = "\n⏳ **Ends:** <t:" + Math.floor(new Date(raffle.close_timer).getTime() / 1000) + ":R>"; }
 
       const statusMsg = "📊 **Raffle Status**\n" + 
-                        "**" + raffle.item_title + "**\n\n" +
+                        "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" +
                         "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
                         "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
                         "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +
@@ -228,6 +229,7 @@ export async function handleModalSubmit(interaction: any, supabase: SupabaseClie
 
     const msgContent = "⚠️ **Please Confirm Raffle Details**\n\n" + 
                        "**Title:** " + raffle.item_title + "\n" +
+                       "**ID:** `" + (raffle.raffle_code || "PENDING") + "`\n" +
                        "**Slots:** " + total_slots + "\n" +
                        "**Market Price:** $" + market_price.toFixed(2) + "\n" +
                        "**Commission:** $" + commissionAmount.toFixed(2) + "\n" +
@@ -281,7 +283,7 @@ export async function handleMessageComponent(interaction: any, supabase: Supabas
         if (raffle.close_timer) { endTimeDisplay = "\n⏳ **Ends:** <t:" + Math.floor(new Date(raffle.close_timer).getTime() / 1000) + ":R>"; }
 
         const msgContent = "🎉 **New Raffle Started!**\n" + 
-                       "**" + raffle.item_title + "**\n\n" + 
+                       "**" + raffle.item_title + "** (ID: `" + (raffle.raffle_code || "N/A") + "`)\n\n" + 
                        "🏷️ **Market Price:** $" + raffle.market_price.toFixed(2) + "\n" +
                        "💸 **Fees/Commission:** $" + commissionAmount.toFixed(2) + "\n" +
                        "💰 **Total Value:** $" + totalRaffleValue.toFixed(2) + "\n" +

@@ -111,7 +111,15 @@
     *   Bot updates the raffle status to `CLOSED` and saves the `winner_id`.
     *   Bot posts a public announcement with the winner and their winning slot number.
 
+### Unique Raffle Identifier
+*   **Feature:** Implemented a unique, publicly displayable `raffle_code` (e.g., `A7X9K2`) to identify specific raffles.
+*   **Schema:** Added `raffle_code` column (text, unique, indexed) via migration `20251216020000_add_raffle_code.sql`.
+*   **Logic:**
+    *   Updated `utils.ts` with a `generateRaffleCode` function (8-char alphanumeric).
+    *   Updated `/raffle create` to generate and save this code.
+    *   Updated `/raffle status` and `/raffle pick_winner` announcements to display this ID.
+
 ### Current State
-*   **Version:** 0.7.0
-*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner.
-*   **Database:** Full Schema + Guild Configs + Winner Tracking.
+*   **Version:** 0.8.0
+*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner + Unique Raffle IDs.
+*   **Database:** Full Schema + Guild Configs + Winner Tracking + Unique Raffle Codes.
