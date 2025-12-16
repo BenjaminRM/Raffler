@@ -100,7 +100,18 @@
 *   **Security:** Registered `/admin` command with `default_member_permissions` set to Administrator (8) to prevent unauthorized configuration.
 *   **Deployment:** Successfully pushed migration `20251216000000_guild_configs.sql` and redeployed the bot.
 
+### Winner Selection System
+*   **Database:** Added `winner_id` column to `raffles` table.
+*   **Command:** Implemented `/raffle pick_winner`.
+*   **Logic:**
+    *   Host selects the command.
+    *   Bot checks for an ACTIVE raffle.
+    *   Bot retrieves all claimed slots.
+    *   Bot performs server-side RNG to select a winner.
+    *   Bot updates the raffle status to `CLOSED` and saves the `winner_id`.
+    *   Bot posts a public announcement with the winner and their winning slot number.
+
 ### Current State
-*   **Version:** 0.6.0
-*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration.
-*   **Database:** Full Schema + Guild Configs.
+*   **Version:** 0.7.0
+*   **Functionality:** Full Feature Set + Modular Code + RBAC for Hosts + Admin Configuration + Pick Winner.
+*   **Database:** Full Schema + Guild Configs + Winner Tracking.

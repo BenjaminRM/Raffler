@@ -132,6 +132,8 @@ Group: /raffle
   * **Action:** Displays the current status, math breakdown, and open slots.
 * **/raffle participants**
   * **Action:** Lists all entrants and their slot counts.
+* **/raffle pick_winner**
+  * **Action:** Randomly selects a winner from claimed slots, closes the raffle, and announces the result.
 
 ### **4.3 Interaction & Claims**
 

@@ -112,6 +112,41 @@ export async function handleRaffleCommand(interaction: any, supabase: SupabaseCl
       return messageResponse(msg);
   }
 
+  if (subcommand?.name === "pick_winner") {
+      // Find the relevant raffle. We check for ACTIVE or CLOSED (but not yet won) raffles for this host/guild.
+      // Prioritize ACTIVE.
+      let { data: raffle } = await supabase.from("raffles").select("*").eq("guild_id", guild_id).eq("status", "ACTIVE").single();
+      
+      // If no active raffle, check if there's a closed one without a winner? 
+      // Actually, typically you pick a winner to close it. Let's stick to: Must be ACTIVE or recently CLOSED.
+      // For simplicity and safety, let's look for the one the user is hosting that is ACTIVE.
+      if (!raffle) {
+           // Fallback: Check for a CLOSED raffle by this host that has no winner yet? 
+           // This might be tricky if there are multiple. Let's restrict to ACTIVE for now as per "shuts the raffle down".
+           return errorResponse("No active raffle found to pick a winner for.");
+      }
+
+      if (raffle.host_id !== user.id) return errorResponse("Only the host can pick a winner.");
+
+      const { data: slots } = await supabase.from("slots").select("claimant_id, slot_number").eq("raffle_id", raffle.raffle_id);
+      
+      if (!slots || slots.length === 0) return errorResponse("No slots claimed! Cannot pick a winner.");
+
+      // RNG
+      const randomIndex = Math.floor(Math.random() * slots.length);
+      const winningSlot = slots[randomIndex];
+
+      // Update Raffle
+      const { error } = await supabase.from("raffles").update({ 
+          status: "CLOSED", 
+          winner_id: winningSlot.claimant_id 
+      }).eq("raffle_id", raffle.raffle_id);
+
+      if (error) return errorResponse(`Failed to record winner: ${error.message}`);
+
+      return messageResponse(`🎉 **Raffle Complete!**\n\nThe winner of **${raffle.item_title}** is...\n\n🏆 <@${winningSlot.claimant_id}> (Slot #${winningSlot.slot_number}) 🏆\n\nCongratulations! The raffle is now closed.`);
+  }
+
   if (subcommand?.name === "status") {
       const { data: raffle } = await supabase.from("raffles").select("*").eq("status", "ACTIVE").eq("guild_id", guild_id).single();
       if (!raffle) return messageResponse("No active raffle at the moment.");

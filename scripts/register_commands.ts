@@ -156,6 +156,11 @@ const commands = [
         type: 1, // SUB_COMMAND
       },
       {
+        name: 'pick_winner',
+        description: 'Pick a random winner from the slots (Closes raffle if active)',
+        type: 1, // SUB_COMMAND
+      },
+      {
         name: 'update',
         description: 'Update the current raffle',
         type: 1, // SUB_COMMAND
